@@ -1,52 +1,69 @@
 import { useState, useEffect } from 'react'
 import { ethers } from "ethers"
 import { Row, Col, Card, Button } from 'react-bootstrap'
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Home = ({ marketplace, nft, ft }) => {
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState([])
 
   const loadMarketplaceItems = async () => {
-    // Load all unsold items
-    const itemCount = await marketplace.itemCount()
-    let items = []
-    for (let i = 1; i <= itemCount; i++) {
-      const item = await marketplace.items(i)
-      if (!item.sold) {
-        // get uri url from nft contract
-        const uri = await nft.tokenURI(item.tokenId)
-        // use uri to fetch the nft metadata stored on ipfs 
-        const response = await fetch(uri)
-        const metadata = await response.json()
-        // get total price of item (item price + fee)
-        const totalPrice = await marketplace.getTotalPrice(item.itemId)
-        const totalTokens = await marketplace.getTotalTokens(item.itemId)
-        // Add item to items array
-        items.push({
-          totalPrice,
-          totalTokens,
-          itemId: item.itemId,
-          seller: item.seller,
-          name: metadata.name,
-          description: metadata.description,
-          image: metadata.image
-        })
+    try {
+      // Load all unsold items
+      const itemCount = await marketplace.itemCount()
+      let items = []
+      for (let i = 1; i <= itemCount; i++) {
+        const item = await marketplace.items(i)
+        if (!item.sold) {
+          // get uri url from nft contract
+          const uri = await nft.tokenURI(item.tokenId)
+          // use uri to fetch the nft metadata stored on ipfs 
+          const response = await fetch(uri)
+          const metadata = await response.json()
+          // get total price of item (item price + fee)
+          const totalPrice = await marketplace.getTotalPrice(item.itemId)
+          const totalTokens = await marketplace.getTotalTokens(item.itemId)
+          // Add item to items array
+          items.push({
+            totalPrice,
+            totalTokens,
+            itemId: item.itemId,
+            seller: item.seller,
+            name: metadata.name,
+            description: metadata.description,
+            image: metadata.image
+          })
+        }
       }
+      setLoading(false)
+      setItems(items)
+    } catch (err) {
+      console.log(err);
+      toast("Some network error occured!")
     }
-    setLoading(false)
-    setItems(items)
   }
 
   const buyMarketItem = async (item) => {
-    await (await marketplace.purchaseItem(item.itemId, { value: item.totalPrice })).wait()
-    loadMarketplaceItems()
+    try {
+      await (await marketplace.purchaseItem(item.itemId, { value: item.totalPrice })).wait()
+      loadMarketplaceItems()  
+    } catch(err) {
+      console.log(err);
+      toast("Some network error occured!")
+    }
   }
 
   const buyMarketItemViaToken = async (item) => {
-    await (await ft.transferToken(item.totalTokens, item.seller)).wait();
-    console.log("Here");
-    await (await marketplace.purchaseItemViaToken(item.itemId, item.totalTokens)).wait()
-    loadMarketplaceItems()
+    try {
+      await (await ft.transferToken(item.totalTokens, item.seller)).wait();
+      console.log("Here");
+      await (await marketplace.purchaseItemViaToken(item.itemId, item.totalTokens)).wait()
+      loadMarketplaceItems()
+    } catch (err) {
+      console.log(err);
+      toast("Some network error occured!")
+    }
   }
 
   useEffect(() => {

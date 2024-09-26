@@ -1,29 +1,36 @@
 import React, { useState } from 'react'
 import { ethers } from "ethers"
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function BuyTokens({ft, account}) {
   const [eth, setEth] = useState();  
   console.log(eth);
   return (
     <div>
-      <h4>Buy TuahaImadAskari (TIA)</h4>
+      <h4>Buy Fastoids (FAS)</h4>
       <form
         onSubmit={async (event) => {
           // This function just calls the transferTokens callback with the
           // form's data.
-          event.preventDefault();
-          const val = ethers.utils.parseEther(eth.toString());
-          console.log("Inside");
-          let res = await ft.buyToken({value: val});
-          console.log(res);
-          alert(eth * 10, ' TJS transferred successfully');  
+          try {
+            event.preventDefault();
+            const val = ethers.utils.parseEther(eth.toString());
+            console.log("Inside");
+            let res = await ft.buyToken({value: val});
+            console.log(res);
+            toast(eth * 10, ' FAS transferred successfully');  
+          } catch (err) {
+            console.log(err);
+            toast("Some network error occured");
+          }
         }}
       >
         <div className="form-group">
         <div className="row">
           <div className="col-12">
             <p>
-              10 TIA for 1 ETH
+              10 FAS for 1 ETH
             </p>
           </div>
         </div>  

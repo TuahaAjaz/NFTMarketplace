@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { ethers } from "ethers"
 import { Row, Form, Button } from 'react-bootstrap'
 import { create as ipfsHttpClient } from 'ipfs-http-client'
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 // const client = ipfsHttpClient('https://ipfs.infura.io:5001')
 
 const Create = ({ marketplace, nft, ft }) => {
@@ -25,16 +27,21 @@ const Create = ({ marketplace, nft, ft }) => {
 
   const uploadToIPFS = async (event) => {
     event.preventDefault()
-    const file = event.target.files[0]
-    if (typeof file !== 'undefined') {
-      try {
-        const result = await client.add(file)
-        console.log(result)
-        setImage(`https://ipfs.io/ipfs/${result.path}`)
-      } catch (error){
-        alert("Error: ", error);
-        console.log("ipfs image upload error: ", error)
+    try {
+      const file = event.target.files[0]
+      if (typeof file !== 'undefined') {
+        try {
+          const result = await client.add(file)
+          console.log(result)
+          setImage(`https://ipfs.io/ipfs/${result.path}`)
+        } catch (error){
+          alert("Error: ", error);
+          console.log("ipfs image upload error: ", error)
+        }
       }
+    } catch (err) {
+      console.log(err);
+      toast("Some network error occured!")
     }
   }
   const createNFT = async () => {
@@ -46,19 +53,25 @@ const Create = ({ marketplace, nft, ft }) => {
       mintThenList(result)
     } catch(error) {
       console.log("ipfs uri upload error: ", error)
+      toast("ipfs uri upload error: ", error)
     }
   }
   const mintThenList = async (result) => {
-    const uri = `https://teejayys.infura-ipfs.io/ipfs/${result.path}`
-    // mint nft 
-    await(await nft.mint(uri)).wait()
-    // get tokenId of new nft 
-    const id = await nft.tokenCount()
-    // approve marketplace to spend nft
-    await(await nft.setApprovalForAll(marketplace.address, true)).wait()
-    // add nft to marketplace
-    const listingPrice = ethers.utils.parseEther(price.toString())
-    await(await marketplace.makeItem(nft.address, id, listingPrice, parseInt(price) * 10)).wait()
+    try {
+      const uri = `https://teejayys.infura-ipfs.io/ipfs/${result.path}`
+      // mint nft 
+      await(await nft.mint(uri)).wait()
+      // get tokenId of new nft 
+      const id = await nft.tokenCount()
+      // approve marketplace to spend nft
+      await(await nft.setApprovalForAll(marketplace.address, true)).wait()
+      // add nft to marketplace
+      const listingPrice = ethers.utils.parseEther(price.toString())
+      await(await marketplace.makeItem(nft.address, id, listingPrice, parseInt(price) * 10)).wait()
+    } catch (err) {
+      console.log(err);
+      toast("Some network error occured!")
+    }
   }
   return (
     <div className="container-fluid mt-5">

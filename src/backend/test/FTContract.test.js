@@ -30,15 +30,24 @@ describe("FTContract", function () {
     
     it("Should transfer tokens from owner to another account", async () => {
         const totalSupply = await ft.totalSupply();
+
+        console.log("totalSupply => ", totalSupply);
  
         const TS = fromWei(totalSupply)
-        await ft.connect(addr1).buyToken({value: 1});
+        
+        console.log("totalSupplyFromWei => ", TS);
+
+        await ft.connect(addr1).buyToken({value: ethers.utils.parseEther("1")});
 
         let balance = await ft.balanceOf(owner.address);
+
+        console.log("OwnerBalance => ", balance);
 
         expect(fromWei(balance) * 1).to.equal(TS - 10);
 
         balance = await ft.balanceOf(addr1.address);
+
+        console.log("address 1 balance => ", balance);
 
         return expect(fromWei(balance) * 1).to.equal(10);
     })
@@ -46,7 +55,7 @@ describe("FTContract", function () {
         const totalSupply = await ft.totalSupply();
  
         const TS = fromWei(totalSupply)
-        await ft.connect(addr1).buyToken({value: 1});
+        await ft.connect(addr1).buyToken({value: ethers.utils.parseEther("1")});
 
         let balance = await ft.balanceOf(owner.address);
 

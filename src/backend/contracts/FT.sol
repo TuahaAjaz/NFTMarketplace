@@ -7,12 +7,16 @@ contract FT is ERC20 {
     address public tokenOwner;         
 
     constructor(uint initialSupply) 
-    ERC20("TuahaImadAskari", "TIA") {
+    ERC20("FASTOIDS", "FAS") {
         tokenOwner = msg.sender;            
         uint256 n = initialSupply;
+        uint256 mintAmount = n * 10**(decimals());
         // mint the tokens
-        _mint(msg.sender, n * 10**uint(decimals()));        
+        _mint(msg.sender, n * 10**(decimals()));  
+        emit TokensMinted(msg.sender, mintAmount);      
     }
+
+    event TokensMinted(address indexed owner, uint256 amount);
 
     function buyToken() external payable {        
         

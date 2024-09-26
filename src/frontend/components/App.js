@@ -18,6 +18,8 @@ import FTAddress from '../contractsData/FT-address.json'
 import { useState } from 'react'
 import { ethers } from "ethers"
 import { Spinner } from 'react-bootstrap'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import './App.css';
 
@@ -29,33 +31,47 @@ function App() {
   const [ft, setFt] = useState({});
   // MetaMask Login/Connect
   const web3Handler = async () => {
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    setAccount(accounts[0])
-    // Get provider from Metamask
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    // Set signer
-    const signer = provider.getSigner()
-
-    window.ethereum.on('chainChanged', (chainId) => {
-      window.location.reload();
-    })
-
-    window.ethereum.on('accountsChanged', async function (accounts) {
+    try {
+      console.log(window.ethereum);
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       setAccount(accounts[0])
-      await web3Handler()
-    })
-    loadContracts(signer)
+      // Get provider from Metamask
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
+      // Set signer
+      const signer = provider.getSigner()
+
+      window.ethereum.on('chainChanged', (chainId) => {
+        window.location.reload();
+      })
+
+      window.ethereum.on('accountsChanged', async function (accounts) {
+        setAccount(accounts[0])
+        await web3Handler()
+      })
+      loadContracts(signer)
+    } catch (err) {
+      console.log(err);
+      toast("Error connecting to wallet!")
+    }
   }
+
   const loadContracts = async (signer) => {
-    // Get deployed copies of contracts
-    const marketplace = new ethers.Contract(MarketplaceAddress.address, MarketplaceAbi.abi, signer)
-    setMarketplace(marketplace)
-    const nft = new ethers.Contract(NFTAddress.address, NFTAbi.abi, signer)
-    setNFT(nft)
-    const ft = new ethers.Contract(FTAddress.address, FTAbi.abi, signer)
-    setFt(ft);
-    setLoading(false)
+    try {
+      // Get deployed copies of contracts
+      const marketplace = new ethers.Contract(MarketplaceAddress.address, MarketplaceAbi.abi, signer)
+      setMarketplace(marketplace)
+      const nft = new ethers.Contract(NFTAddress.address, NFTAbi.abi, signer)
+      setNFT(nft)
+      const ft = new ethers.Contract(FTAddress.address, FTAbi.abi, signer)
+      setFt(ft);
+      setLoading(false)
+    } catch (err) {
+      console.log(err);
+      toast("Error cloading contracts!")
+    }
   }
+
+  console.log(marketplace, nft, ft);
 
   return (
     <BrowserRouter>
@@ -63,6 +79,7 @@ function App() {
         <>
           <Navigation web3Handler={web3Handler} account={account} />
         </>
+        <ToastContainer />
         <div>
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>

@@ -32,8 +32,8 @@ describe("NFTMarketplace", function () {
     it("Should track name and symbol of the nft collection", async function () {
       // This test expects the owner variable stored in the contract to be equal
       // to our Signer's owner.
-      const nftName = "DApp NFT"
-      const nftSymbol = "DAPP"
+      const nftName = "FASTOIDS NFT"
+      const nftSymbol = "FAS"
       expect(await nft.name()).to.equal(nftName);
       expect(await nft.symbol()).to.equal(nftSymbol);
     });
@@ -120,6 +120,7 @@ describe("NFTMarketplace", function () {
       const feeAccountInitialEthBal = await deployer.getBalance()
       // fetch items total price (market fees + item price)
       totalPriceInWei = await marketplace.getTotalPrice(1);
+      console.log("totalPrice => ", fromWei(totalPriceInWei));
       // addr 2 purchases item.
       await expect(marketplace.connect(addr2).purchaseItem(1, {value: totalPriceInWei}))
       .to.emit(marketplace, "Bought")
@@ -128,7 +129,7 @@ describe("NFTMarketplace", function () {
           nft.address,
           1,
           toWei(price),
-          2,
+          0,
           addr1.address,
           addr2.address
         )
